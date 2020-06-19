@@ -42,7 +42,27 @@ public class SwiftBarcodeScanPlugin: NSObject, FlutterPlugin, BarcodeScannerView
             scannerViewController.config = config
         }
         scannerViewController.delegate = self
+        
+        let rootViewController = UIApplication.shared.keyWindow?.rootViewController
+        hostViewController = self.getVisibleViewControllerFrom(vc: rootViewController!)
+        
         hostViewController?.present(navigationController, animated: false)
+    }
+    
+    private func getVisibleViewControllerFrom(vc:UIViewController) -> UIViewController {
+        if let navigationController = vc as? UINavigationController,
+            let visibleController = navigationController.visibleViewController  {
+            return self.getVisibleViewControllerFrom( vc: visibleController )
+        } else if let tabBarController = vc as? UITabBarController,
+            let selectedTabController = tabBarController.selectedViewController {
+            return self.getVisibleViewControllerFrom(vc: selectedTabController )
+        } else {
+            if let presentedViewController = vc.presentedViewController {
+                return self.getVisibleViewControllerFrom(vc: presentedViewController)
+            } else {
+                return vc
+            }
+        }
     }
     
     private func getPayload<T : SwiftProtobuf.Message>(call: FlutterMethodCall) -> T? {
